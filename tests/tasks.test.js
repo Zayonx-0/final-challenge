@@ -3,7 +3,13 @@ const assert = require('node:assert/strict');
 const { app } = require('../src/app');
 
 async function request(path, options = {}) {
-  const server = app.listen(0);
+  const server = app.listen(0, '127.0.0.1');
+
+  await new Promise((resolve, reject) => {
+    server.once('listening', resolve);
+    server.once('error', reject);
+  });
+
   const { port } = server.address();
 
   try {
@@ -35,6 +41,23 @@ test('GET /tasks returns tasks', async () => {
   assert.equal(response.status, 200);
   assert.ok(Array.isArray(body));
   assert.ok(body.length > 0);
+});
+
+test('GET /tasks filters tasks by each supported status', async () => {
+  for (const status of ['todo', 'in-progress', 'done']) {
+    const { response, body } = await request(`/tasks?status=${status}`);
+
+    assert.equal(response.status, 200);
+    assert.ok(body.length > 0);
+    assert.ok(body.every((task) => task.status === status));
+  }
+});
+
+test('GET /tasks rejects an unsupported status filter', async () => {
+  const { response, body } = await request('/tasks?status=blocked');
+
+  assert.equal(response.status, 400);
+  assert.equal(body.error, 'Status must be one of: todo, in-progress, done');
 });
 
 test('GET /tasks/:id returns 404 for an unknown task', async () => {

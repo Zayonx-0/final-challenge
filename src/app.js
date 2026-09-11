@@ -3,6 +3,8 @@ const express = require('express');
 const app = express();
 app.use(express.json());
 
+const TASK_STATUSES = new Set(['todo', 'in-progress', 'done']);
+
 let tasks = [
   {
     id: 1,
@@ -31,7 +33,19 @@ app.get('/health', (req, res) => {
 });
 
 app.get('/tasks', (req, res) => {
-  res.json(tasks);
+  const { status } = req.query;
+
+  if (status && !TASK_STATUSES.has(status)) {
+    return res.status(400).json({
+      error: 'Status must be one of: todo, in-progress, done'
+    });
+  }
+
+  const filteredTasks = status
+    ? tasks.filter((task) => task.status === status)
+    : tasks;
+
+  return res.json(filteredTasks);
 });
 
 app.get('/tasks/:id', (req, res) => {
