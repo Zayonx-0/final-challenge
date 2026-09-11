@@ -44,6 +44,24 @@ test('GET /tasks returns tasks', async () => {
   assert.ok(body.length > 0);
 });
 
+test('GET /tasks filters tasks by status', async () => {
+  const { response, body } = await request('/tasks?status=todo');
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(
+    body.map((task) => task.status),
+    ['todo']
+  );
+  assert.equal(body[0].id, 1);
+});
+
+test('GET /tasks rejects an unsupported status filter', async () => {
+  const { response, body } = await request('/tasks?status=blocked');
+
+  assert.equal(response.status, 400);
+  assert.equal(body.error, 'Status must be one of: todo, in-progress, done');
+});
+
 test('GET /tasks/:id returns 404 for an unknown task', async () => {
   const { response, body } = await request('/tasks/999999');
 

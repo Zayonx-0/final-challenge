@@ -79,7 +79,19 @@ app.get('/health', (req, res) => {
 });
 
 app.get('/tasks', (req, res) => {
-  res.json(tasks);
+  const { status } = req.query;
+
+  if (status !== undefined && !TASK_STATUSES.has(status)) {
+    return res.status(400).json({
+      error: 'Status must be one of: todo, in-progress, done'
+    });
+  }
+
+  const filteredTasks = status
+    ? tasks.filter((task) => task.status === status)
+    : tasks;
+
+  return res.json(filteredTasks);
 });
 
 app.get('/tasks/:id', (req, res) => {
