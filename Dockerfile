@@ -1,16 +1,20 @@
-FROM node:22-alpine AS production-dependencies
+FROM node:22-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32 AS production-dependencies
 
 WORKDIR /app
 
 COPY package.json package-lock.json ./
-RUN npm ci --omit=dev && npm cache clean --force
+RUN apk upgrade --no-cache \
+    && npm ci --omit=dev \
+    && npm cache clean --force
 
-FROM node:22-alpine AS runtime
+FROM node:22-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32 AS runtime
 
 ENV NODE_ENV=production \
     PORT=3000
 
 WORKDIR /app
+
+RUN apk upgrade --no-cache
 
 COPY --from=production-dependencies --chown=node:node /app/node_modules ./node_modules
 COPY --chown=node:node package.json package-lock.json ./

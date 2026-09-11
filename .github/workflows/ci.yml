@@ -65,6 +65,7 @@ jobs:
           context: .
           load: true
           push: false
+          pull: true
           tags: task-api:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -84,12 +85,21 @@ jobs:
           docker logs "${container_id}"
           exit 1
 
-      - name: Scan image for HIGH and CRITICAL vulnerabilities
+      - name: Generate container vulnerability report
         uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: task-api:ci
           format: sarif
           output: trivy-results.sarif
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "0"
+
+      - name: Enforce HIGH and CRITICAL vulnerability policy
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: task-api:ci
+          format: table
           severity: HIGH,CRITICAL
           ignore-unfixed: true
           exit-code: "1"
