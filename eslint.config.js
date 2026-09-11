@@ -6,7 +6,12 @@ module.exports = [
     files: ['**/*.js'],
     languageOptions: {
       ecmaVersion: 2022,
-      sourceType: 'commonjs'
+      sourceType: 'commonjs',
+      globals: {
+        console: 'readonly',
+        fetch: 'readonly',
+        process: 'readonly'
+      }
     },
     rules: {
       'no-unused-vars': 'error',
