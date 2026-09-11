@@ -60,6 +60,58 @@ test('GET /tasks rejects an unsupported status filter', async () => {
   assert.equal(body.error, 'Status must be one of: todo, in-progress, done');
 });
 
+test('GET /tasks searches titles case-insensitively', async () => {
+  const { response, body } = await request('/tasks?search=WORKSHOP');
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(body.map((task) => task.id), [1]);
+});
+
+test('GET /tasks searches descriptions case-insensitively', async () => {
+  const { response, body } = await request('/tasks?search=github%20actions');
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(body.map((task) => task.id), [2]);
+});
+
+test('GET /tasks returns an empty list when search has no match', async () => {
+  const { response, body } = await request('/tasks?search=does-not-exist');
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(body, []);
+});
+
+test('GET /tasks treats an empty search as an unfiltered request', async () => {
+  const unfiltered = await request('/tasks');
+  const emptySearch = await request('/tasks?search=%20%20');
+
+  assert.equal(emptySearch.response.status, 200);
+  assert.deepEqual(emptySearch.body, unfiltered.body);
+});
+
+test('GET /tasks combines status filtering and search', async () => {
+  const match = await request('/tasks?status=in-progress&search=actions');
+  const noMatch = await request('/tasks?status=done&search=actions');
+
+  assert.equal(match.response.status, 200);
+  assert.deepEqual(match.body.map((task) => task.id), [2]);
+  assert.equal(noMatch.response.status, 200);
+  assert.deepEqual(noMatch.body, []);
+});
+
+test('GET /tasks rejects repeated query parameters', async () => {
+  const repeatedStatus = await request('/tasks?status=todo&status=done');
+  const repeatedSearch = await request('/tasks?search=github&search=actions');
+
+  assert.equal(repeatedStatus.response.status, 400);
+  assert.equal(
+    repeatedStatus.body.error,
+    'Status must be one of: todo, in-progress, done'
+  );
+  assert.equal(repeatedSearch.response.status, 400);
+  assert.equal(repeatedSearch.body.error, 'Search must be provided once as text');
+});
+
 test('GET /tasks/:id returns 404 for an unknown task', async () => {
   const { response, body } = await request('/tasks/999999');
 

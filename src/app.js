@@ -33,17 +33,32 @@ app.get('/health', (req, res) => {
 });
 
 app.get('/tasks', (req, res) => {
-  const { status } = req.query;
+  const { status, search } = req.query;
 
-  if (status && !TASK_STATUSES.has(status)) {
+  if (status !== undefined && (
+    typeof status !== 'string' || !TASK_STATUSES.has(status)
+  )) {
     return res.status(400).json({
       error: 'Status must be one of: todo, in-progress, done'
     });
   }
 
-  const filteredTasks = status
-    ? tasks.filter((task) => task.status === status)
-    : tasks;
+  if (search !== undefined && typeof search !== 'string') {
+    return res.status(400).json({
+      error: 'Search must be provided once as text'
+    });
+  }
+
+  const normalizedSearch = search?.trim().toLowerCase() || '';
+  const filteredTasks = tasks.filter((task) => {
+    const matchesStatus = !status || task.status === status;
+    const searchableText = `${task.title} ${task.description || ''}`
+      .toLowerCase();
+    const matchesSearch = !normalizedSearch ||
+      searchableText.includes(normalizedSearch);
+
+    return matchesStatus && matchesSearch;
+  });
 
   return res.json(filteredTasks);
 });
