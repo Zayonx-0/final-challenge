@@ -1,0 +1,25 @@
+services:
+  task-api:
+    build:
+      context: .
+      target: runtime
+    image: task-api:local
+    init: true
+    environment:
+      NODE_ENV: production
+      PORT: ${PORT:-3000}
+    ports:
+      - "${PORT:-3000}:${PORT:-3000}"
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch(`http://127.0.0.1:$${process.env.PORT}/health`).then((response) => { if (!response.ok) process.exit(1); }).catch(() => process.exit(1));"
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    read_only: true
+    tmpfs:
+      - /tmp
