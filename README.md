@@ -121,7 +121,7 @@ Weekly dependency and repository scans are defined in `.github/workflows/securit
 Published images use:
 
 ```text
-ghcr.io/gitfabien/final-challenge
+ghcr.io/zayonx-0/final-challenge
 ```
 
 Available tags are generated automatically:
@@ -133,7 +133,7 @@ Available tags are generated automatically:
 Pull a published image with:
 
 ```bash
-docker pull ghcr.io/gitfabien/final-challenge:latest
+docker pull ghcr.io/zayonx-0/final-challenge:latest
 ```
 
 Docker metadata adds OCI source, revision, creation time, description, and version labels. Together with the `sha-*` tag, these labels trace a package back to its source repository and exact commit. Build provenance and an SBOM are also attached during publication.
