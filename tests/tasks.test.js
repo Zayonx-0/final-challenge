@@ -62,6 +62,35 @@ test('GET /tasks rejects an unsupported status filter', async () => {
   assert.equal(body.error, 'Status must be one of: todo, in-progress, done');
 });
 
+test('GET /tasks searches task titles and descriptions case-insensitively', async () => {
+  const { response, body } = await request('/tasks?search=github');
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(
+    body.map((task) => task.id),
+    [1, 2]
+  );
+});
+
+test('GET /tasks applies status and search filters together', async () => {
+  const { response, body } = await request(
+    '/tasks?status=in-progress&search=github'
+  );
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(
+    body.map((task) => task.id),
+    [2]
+  );
+});
+
+test('GET /tasks returns no task when filters have no common match', async () => {
+  const { response, body } = await request('/tasks?status=done&search=github');
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(body, []);
+});
+
 test('GET /tasks/:id returns 404 for an unknown task', async () => {
   const { response, body } = await request('/tasks/999999');
 
@@ -82,6 +111,19 @@ test('POST /tasks creates a valid task with the default status', async () => {
   assert.equal(body.title, 'Validate API requests');
   assert.equal(body.status, 'todo');
   assert.equal(typeof body.id, 'number');
+});
+
+test('GET /tasks search handles tasks without an optional description', async () => {
+  const created = await request('/tasks', {
+    method: 'POST',
+    body: JSON.stringify({ title: 'Task without a description' })
+  });
+
+  assert.equal(created.response.status, 201);
+
+  const { response, body } = await request('/tasks?search=not-present');
+  assert.equal(response.status, 200);
+  assert.deepEqual(body, []);
 });
 
 test('POST /tasks rejects a missing title', async () => {

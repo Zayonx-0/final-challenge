@@ -79,7 +79,7 @@ app.get('/health', (req, res) => {
 });
 
 app.get('/tasks', (req, res) => {
-  const { status } = req.query;
+  const { status, search } = req.query;
 
   if (status !== undefined && !TASK_STATUSES.has(status)) {
     return res.status(400).json({
@@ -87,9 +87,19 @@ app.get('/tasks', (req, res) => {
     });
   }
 
-  const filteredTasks = status
-    ? tasks.filter((task) => task.status === status)
-    : tasks;
+  if (search !== undefined && typeof search !== 'string') {
+    return res.status(400).json({ error: 'Search must be a string' });
+  }
+
+  const searchTerm = search?.trim().toLowerCase();
+  const filteredTasks = tasks.filter((task) => {
+    const matchesStatus = !status || task.status === status;
+    const searchableContent = `${task.title} ${task.description || ''}`.toLowerCase();
+    const matchesSearch =
+      !searchTerm || searchableContent.includes(searchTerm);
+
+    return matchesStatus && matchesSearch;
+  });
 
   return res.json(filteredTasks);
 });
