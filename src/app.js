@@ -79,7 +79,23 @@ app.get('/health', (req, res) => {
 });
 
 app.get('/tasks', (req, res) => {
-  res.json(tasks);
+  const { status, search } = req.query;
+
+  if (status && !TASK_STATUSES.has(status)) {
+    return res.status(400).json({
+      error: 'Status must be one of: todo, in-progress, done'
+    });
+  }
+
+  const normalizedSearch = typeof search === 'string' ? search.trim().toLowerCase() : '';
+  const filteredTasks = tasks.filter((task) => {
+    const matchesStatus = !status || task.status === status;
+    const searchableText = `${task.title} ${task.description || ''}`.toLowerCase();
+    const matchesSearch = !normalizedSearch || searchableText.includes(normalizedSearch);
+    return matchesStatus && matchesSearch;
+  });
+
+  return res.json(filteredTasks);
 });
 
 app.get('/tasks/:id', (req, res) => {
