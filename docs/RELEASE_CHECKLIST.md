@@ -20,7 +20,7 @@ git push origin v1.0.0
 ```
 
 - [ ] The publish workflow succeeds for the version tag.
-- [ ] `ghcr.io/gitfabien/final-challenge:1.0.0` points to the expected commit.
+- [ ] `ghcr.io/zayonx-0/final-challenge:1.0.0` points to the expected commit.
 - [ ] OCI labels expose the repository, revision, build time, and version.
 - [ ] Build provenance and the SBOM are attached to the published package.
 
@@ -41,8 +41,8 @@ git push origin v1.0.0
 
 ## Docker image
 
-- `ghcr.io/gitfabien/final-challenge:1.0.0`
-- `ghcr.io/gitfabien/final-challenge:sha-<commit>`
+- `ghcr.io/zayonx-0/final-challenge:1.0.0`
+- `ghcr.io/zayonx-0/final-challenge:sha-<commit>`
 
 ## Known limitations
 
