@@ -95,6 +95,15 @@ jobs:
           ignore-unfixed: true
           exit-code: "0"
 
+      - name: Display Trivy vulnerabilities
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: task-api:ci
+          format: table
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "0"
+
       - name: Enforce HIGH and CRITICAL vulnerability policy
         uses: aquasecurity/trivy-action@v0.36.0
         with:
