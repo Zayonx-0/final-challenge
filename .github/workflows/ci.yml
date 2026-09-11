@@ -92,9 +92,7 @@ jobs:
           output: trivy-results.sarif
           severity: HIGH,CRITICAL
           ignore-unfixed: true
-          # Keep the scan visible and uploadable without blocking delivery on
-          # upstream base-image advisories that are outside this repository.
-          exit-code: "0"
+          exit-code: "1"
 
       - name: Upload scan results to GitHub Security
         if: >-

@@ -47,6 +47,4 @@ jobs:
           format: table
           severity: HIGH,CRITICAL
           ignore-unfixed: true
-          # Keep scheduled security reporting actionable without making the
-          # workflow fail on upstream base-image advisories.
-          exit-code: "0"
+          exit-code: "1"
