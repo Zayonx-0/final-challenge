@@ -62,6 +62,14 @@ test('GET /tasks rejects an unsupported status filter', async () => {
   assert.equal(body.error, 'Status must be one of: todo, in-progress, done');
 });
 
+test('GET /tasks rejects repeated query parameters', async () => {
+  const repeatedStatus = await request('/tasks?status=todo&status=done');
+  const repeatedSearch = await request('/tasks?search=github&search=actions');
+
+  assert.equal(repeatedStatus.response.status, 400);
+  assert.equal(repeatedSearch.response.status, 400);
+});
+
 test('GET /tasks searches task titles and descriptions case-insensitively', async () => {
   const { response, body } = await request('/tasks?search=github');
 
