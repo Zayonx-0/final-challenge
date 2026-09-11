@@ -112,6 +112,42 @@ app.post('/tasks', (req, res) => {
   return res.status(201).json(task);
 });
 
+app.patch('/tasks/:id', (req, res) => {
+  const task = tasks.find((item) => item.id === Number(req.params.id));
+
+  if (!task) {
+    return res.status(404).json({ error: 'Task not found' });
+  }
+
+  const validationError = validateTaskPayload(req.body, { partial: true });
+
+  if (validationError) {
+    return res.status(400).json({ error: validationError });
+  }
+
+  const updates = { ...req.body };
+
+  if (Object.hasOwn(updates, 'title')) {
+    updates.title = updates.title.trim();
+  }
+
+  Object.assign(task, updates);
+  return res.json(task);
+});
+
+app.delete('/tasks/:id', (req, res) => {
+  const taskIndex = tasks.findIndex(
+    (item) => item.id === Number(req.params.id)
+  );
+
+  if (taskIndex === -1) {
+    return res.status(404).json({ error: 'Task not found' });
+  }
+
+  tasks.splice(taskIndex, 1);
+  return res.status(204).send();
+});
+
 app.use((error, req, res, next) => {
   if (error instanceof SyntaxError && error.status === 400 && 'body' in error) {
     return res.status(400).json({ error: 'Request body contains invalid JSON' });

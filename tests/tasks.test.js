@@ -115,3 +115,79 @@ test('POST /tasks returns JSON for a malformed JSON request', async () => {
   assert.equal(response.status, 400);
   assert.equal(body.error, 'Request body contains invalid JSON');
 });
+
+test('PATCH /tasks/:id updates only the supplied task fields', async () => {
+  const { response, body } = await request('/tasks/1', {
+    method: 'PATCH',
+    body: JSON.stringify({ title: '  Prepare release notes  ', status: 'done' })
+  });
+
+  assert.equal(response.status, 200);
+  assert.equal(body.id, 1);
+  assert.equal(body.title, 'Prepare release notes');
+  assert.equal(body.description, 'Finish the slides');
+  assert.equal(body.status, 'done');
+});
+
+test('PATCH /tasks/:id rejects an invalid status without changing the task', async () => {
+  const invalidUpdate = await request('/tasks/2', {
+    method: 'PATCH',
+    body: JSON.stringify({ status: 'archived' })
+  });
+
+  assert.equal(invalidUpdate.response.status, 400);
+  assert.equal(
+    invalidUpdate.body.error,
+    'Status must be one of: todo, in-progress, done'
+  );
+
+  const { body: unchangedTask } = await request('/tasks/2');
+  assert.equal(unchangedTask.status, 'in-progress');
+});
+
+test('PATCH /tasks/:id rejects an empty update', async () => {
+  const { response, body } = await request('/tasks/1', {
+    method: 'PATCH',
+    body: JSON.stringify({})
+  });
+
+  assert.equal(response.status, 400);
+  assert.equal(body.error, 'At least one task field is required');
+});
+
+test('PATCH /tasks/:id returns 404 for an unknown task', async () => {
+  const { response, body } = await request('/tasks/999999', {
+    method: 'PATCH',
+    body: JSON.stringify({ status: 'done' })
+  });
+
+  assert.equal(response.status, 404);
+  assert.equal(body.error, 'Task not found');
+});
+
+test('DELETE /tasks/:id deletes a task and returns no content', async () => {
+  const created = await request('/tasks', {
+    method: 'POST',
+    body: JSON.stringify({ title: 'Temporary task' })
+  });
+
+  const deletion = await request(`/tasks/${created.body.id}`, {
+    method: 'DELETE'
+  });
+
+  assert.equal(deletion.response.status, 204);
+  assert.equal(deletion.body, null);
+
+  const regressionCheck = await request(`/tasks/${created.body.id}`);
+  assert.equal(regressionCheck.response.status, 404);
+  assert.equal(regressionCheck.body.error, 'Task not found');
+});
+
+test('DELETE /tasks/:id returns 404 for an unknown task', async () => {
+  const { response, body } = await request('/tasks/999999', {
+    method: 'DELETE'
+  });
+
+  assert.equal(response.status, 404);
+  assert.equal(body.error, 'Task not found');
+});
