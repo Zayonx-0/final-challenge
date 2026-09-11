@@ -10,7 +10,7 @@ module.exports = [
       globals: {
         console: 'readonly',
         fetch: 'readonly',
-        process: 'readonly'
+
       }
     },
     rules: {
